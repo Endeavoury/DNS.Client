@@ -1,109 +1,105 @@
 # DNS.Client
 
-`Endeavoury.DNS.Client` is a dependency-free .NET Standard 2.1 DNS client and wire-format library for the
-client-side protocol defined by [RFC 1035](https://www.rfc-editor.org/info/rfc1035/).
+[![Build and test](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml/badge.svg)](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml)
+[![Release](https://github.com/Endeavoury/DNS.Client/actions/workflows/package.yml/badge.svg)](https://github.com/Endeavoury/DNS.Client/actions/workflows/package.yml)
+[![NuGet](https://img.shields.io/nuget/v/Endeavoury.DNS.Client.svg)](https://www.nuget.org/packages/Endeavoury.DNS.Client)
+[![GitHub release](https://img.shields.io/github/v/release/Endeavoury/DNS.Client)](https://github.com/Endeavoury/DNS.Client/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-It supports:
+`DNS.Client` is a dependency-free, wire-compatible DNS resolver library for .NET.
+It implements the client-side protocol described by [RFC 1035](https://www.rfc-editor.org/rfc/rfc1035),
+with a modern high-level API for application lookups and a low-level API for protocol work.
 
-- standard, inverse, and status message opcodes;
-- all RFC 1035 TYPE, QTYPE, CLASS, QCLASS, and response-code values;
-- the A, CNAME, HINFO, MB, MD, MF, MG, MINFO, MR, MX, NULL, NS, PTR, SOA, TXT,
-  WKS, AAAA, SRV, NAPTR, and CAA RDATA formats, with lossless raw data for unknown
-  extension types;
-- all four DNS sections and correct header counts;
-- reading and writing compressed names, including pointer safety and RFC name limits;
-- UDP retries, multiple resolvers, response matching, the RFC 512-byte UDP limit,
-  and automatic TCP retry for truncated responses;
-- explicit TCP queries and multi-message AXFR zone transfers;
-- IPv4 reverse lookup through the RFC 1035 IN-ADDR.ARPA namespace;
-- synchronous and asynchronous calls, cancellation, and configurable timeouts.
-- a high-level `LookupClient` API with configurable name servers, TTL-aware caching,
-  reverse lookups, AXFR, and typed record collection helpers (`ARecords()`,
-  `AaaaRecords()`, `MxRecords()`, `SrvRecords()`, and `TxtRecords()`).
+## Why this package?
 
-The package is a DNS client, not an authoritative name server or a zone-file database.
-RFC 1035's server architecture and master-file storage sections are therefore outside
-its public surface.
+- Works on every runtime implementing **.NET Standard 2.1**.
+- Uses UDP by default, retries across resolvers, and falls back to TCP for truncated responses.
+- Preserves unknown record types as raw RDATA instead of discarding bytes.
+- Supports synchronous and asynchronous APIs, cancellation, timeouts, AXFR, and reverse DNS.
+- Includes a TTL-aware `LookupClient` cache and typed record collection helpers.
+- Has no third-party runtime dependencies.
 
 ## Install
 
-The package is published to GitHub Packages and nuget.org. Configure the owner feed
-for GitHub Packages, or install directly from nuget.org:
-
 ```bash
-dotnet nuget add source \
-  --username YOUR_GITHUB_USERNAME \
-  --password YOUR_GITHUB_TOKEN \
-  --store-password-in-clear-text \
-  --name github-roygerritse \
-  https://nuget.pkg.github.com/RoyGerritse/index.json
-
-dotnet add package Endeavoury.DNS.Client --source github-roygerritse
+dotnet add package Endeavoury.DNS.Client
 ```
 
-The token needs `read:packages`. Keep it outside committed configuration files.
-
-From nuget.org, use the standard source:
-
-```bash
-dotnet add package Endeavoury.DNS.Client --source https://api.nuget.org/v3/index.json
-```
-
-## Query a resolver
+## A first lookup
 
 ```csharp
+using System.Net;
 using DNS.Client;
 
-var client = new DnsClient(); // discovers DNS servers from active interfaces
-DnsMessage response = await client.QueryAsync("example.com", QuestionType.A);
+var lookup = new LookupClient();
+var response = await lookup.QueryAsync("example.com", QuestionType.A);
 
-foreach (DnsResourceRecord answer in response.Answers)
-{
-    if (answer.Data is ARecordData a)
-        Console.WriteLine($"{answer.Name} -> {a.Address} (TTL {answer.TimeToLive})");
-}
+foreach (var address in response.Answers.ARecords())
+    Console.WriteLine(address.Address);
 ```
 
-An explicit resolver, non-standard port, or fallback list can be supplied:
+For deterministic infrastructure or tests, specify resolvers explicitly:
 
 ```csharp
-var one = new DnsClient(IPAddress.Parse("192.0.2.53"));
-var several = new DnsClient(new[]
+var lookup = new LookupClient(new LookupClientOptions
 {
-    new IPEndPoint(IPAddress.Parse("192.0.2.53"), 53),
-    new IPEndPoint(IPAddress.Parse("198.51.100.53"), 53)
+    NameServers = new[] { new NameServer(IPAddress.Parse("1.1.1.1")) },
+    Timeout = TimeSpan.FromSeconds(2),
+    Retries = 3,
+    EnableCache = true
 });
-several.Timeout = TimeSpan.FromSeconds(2);
-several.Attempts = 4;
 ```
 
-By default, DNS error responses are returned so callers can inspect authority records
-and `Header.ResponseCode`. Set `ThrowOnResponseError = true` to receive a
-`DnsResponseException` instead.
+## Capabilities at a glance
 
-## Build a message or parse bytes
+| Area | Included |
+| --- | --- |
+| Queries | A, AAAA, NS, CNAME, MX, PTR, SOA, TXT, SRV, NAPTR, CAA, HINFO, MINFO, WKS and more |
+| Transport | UDP, TCP framing, truncation fallback, retries, cancellation |
+| Message format | Header flags, all four sections, name compression, pointer-loop protection |
+| Resolver features | Server discovery, multiple endpoints, TTL cache, reverse lookup, AXFR |
+| Extensibility | Unknown QTYPE/CLASS and RDATA are retained losslessly |
+| Tooling | .NET Standard 2.1 library, tests, console sample, GitHub Actions releases |
 
-```csharp
-var query = DnsMessage.CreateQuery(0x1234, "example.com", QuestionType.MX);
-byte[] wire = query.ToArray();
-DnsMessage parsed = DnsMessage.Parse(wire);
+## Choose the right API
+
+| Need | API |
+| --- | --- |
+| Normal application lookup | `LookupClient.QueryAsync` |
+| A specific resolver/port | `LookupClientOptions.NameServers` or `DnsClient(IPEndPoint[])` |
+| Custom opcode, sections, or raw records | `DnsMessage` + `DnsMessageCodec` |
+| Zone transfer | `TransferZoneAsync` |
+| Inspect every byte | `DnsMessage.Parse` / `DnsMessage.ToArray` |
+
+## Documentation
+
+- [Usage guide](docs/usage.md) — queries, options, records, cancellation, and examples.
+- [DNS fundamentals](docs/dns-fundamentals.md) — names, records, recursion, caching, and transport.
+- [Technical architecture](docs/architecture.md) — wire codec, resolver pipeline, and failure handling.
+- [Record reference](docs/records.md) — supported types, models, and unknown-record behavior.
+- [API reference](docs/api-reference.md) — public types and recommended usage patterns.
+- [Troubleshooting](docs/troubleshooting.md) — timeouts, truncation, NXDOMAIN, and package diagnostics.
+- [Contributing](docs/contributing.md) — local development, tests, style, and pull requests.
+- [Publishing](docs/publishing.md) — semantic versions, GitHub Releases, and Trusted Publishing.
+
+## Project layout
+
+```text
+DNS.Client/             Library source
+DNS.Client.Tests/       Protocol and transport tests
+DNS.Client.Console/     Small command-line example
+docs/                   Developer and protocol documentation
+.github/workflows/      Build, test, release, and package publishing
 ```
 
-For lower-level operations, create a `DnsMessage`, set its `DnsHeader`, and add
-questions or records to any section. `SendAsync` uses UDP with automatic TCP fallback;
-`SendTcpAsync` always uses TCP. `TransferZoneAsync` performs an AXFR over TCP.
+## Compatibility and security
 
-See the [package guide](https://github.com/RoyGerritse/DNS.Client/blob/master/docs/usage.md)
-for record models, error handling, low-level messages, reverse queries, and zone
-transfers. Maintainers can find the tag-based release process in the
-[publishing documentation](https://github.com/RoyGerritse/DNS.Client/blob/master/docs/publishing.md).
+The library targets .NET Standard 2.1 and does not execute code received from DNS
+servers. DNS answers are untrusted input: validate names and record content before
+using them in security-sensitive decisions. Classic DNS provides no confidentiality
+or authenticity; use a trusted transport or DNSSEC-aware infrastructure when those
+properties are required.
 
-Every push to `master` creates a GitHub Release and publishes the next patch version
-to both GitHub Packages and nuget.org. Releases start at `1.0.0`; create a `vMAJOR.MINOR.0`
-tag yourself when you want to move to a new major or minor line.
+## License
 
-## Verification
-
-```bash
-dotnet test DNS.Client.sln
-```
+Released under the [MIT License](LICENSE).

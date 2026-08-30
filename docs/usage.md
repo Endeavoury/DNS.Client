@@ -1,5 +1,30 @@
 # Package guide
 
+## High-level resolver
+
+`LookupClient` is convenient for application code. It adds resolver options, a
+concurrent TTL cache, and typed answer helpers on top of the protocol client:
+
+```csharp
+using DNS.Client;
+
+var lookup = new LookupClient(new LookupClientOptions
+{
+    NameServers = new[] { NameServer.Cloudflare },
+    Timeout = TimeSpan.FromSeconds(2),
+    Retries = 3,
+    EnableCache = true
+});
+
+var response = await lookup.QueryAsync("_sip._tcp.example.com", QuestionType.SRV);
+foreach (var srv in response.Answers.SrvRecords())
+    Console.WriteLine($"{srv.Target}:{srv.Port} (priority {srv.Priority})");
+```
+
+The cache key includes name, type, and class. It expires at the shortest answer TTL;
+call `ClearCache()` after a configuration change or when immediate fresh data is
+required.
+
 ## Compatibility
 
 The library targets .NET Standard 2.1. It can be referenced by applications whose
