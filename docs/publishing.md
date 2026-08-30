@@ -1,8 +1,9 @@
 # Publishing
 
 The GitHub Actions workflow in `.github/workflows/package.yml` builds, tests, and
-creates a package for pull requests and pushes to `master`. A version tag publishes
-the package to both GitHub Packages and nuget.org.
+creates a package for pull requests and pushes to `master`. A push to `master`
+publishes a uniquely versioned `0.0.0-ci.<run-number>` prerelease to both feeds. A
+version tag publishes the stable version to both GitHub Packages and nuget.org.
 
 ## Configure nuget.org publishing
 

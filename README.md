@@ -94,6 +94,9 @@ for record models, error handling, low-level messages, reverse queries, and zone
 transfers. Maintainers can find the tag-based release process in the
 [publishing documentation](https://github.com/RoyGerritse/DNS.Client/blob/master/docs/publishing.md).
 
+Pushes to `master` publish CI prereleases; `v*` tags publish stable versions to both
+GitHub Packages and nuget.org.
+
 ## Verification
 
 ```bash
