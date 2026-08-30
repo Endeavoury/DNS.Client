@@ -4,6 +4,8 @@
 [![Release](https://github.com/Endeavoury/DNS.Client/actions/workflows/package.yml/badge.svg)](https://github.com/Endeavoury/DNS.Client/actions/workflows/package.yml)
 [![NuGet](https://img.shields.io/nuget/v/Endeavoury.DNS.Client.svg)](https://www.nuget.org/packages/Endeavoury.DNS.Client)
 [![GitHub release](https://img.shields.io/github/v/release/Endeavoury/DNS.Client)](https://github.com/Endeavoury/DNS.Client/releases)
+[![Coverage](https://img.shields.io/badge/coverage-Cobertura%20in%20CI-blue)](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml)
+[![RFC audit](https://img.shields.io/badge/RFC%20compliance-audited-orange)](docs/dns-rfc-compliance.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 `DNS.Client` is a dependency-free, wire-compatible DNS resolver library for .NET.
@@ -81,6 +83,22 @@ var lookup = new LookupClient(new LookupClientOptions
 - [Troubleshooting](docs/troubleshooting.md) — timeouts, truncation, NXDOMAIN, and package diagnostics.
 - [Contributing](docs/contributing.md) — local development, tests, style, and pull requests.
 - [Publishing](docs/publishing.md) — semantic versions, GitHub Releases, and Trusted Publishing.
+
+## Coverage and RFC compliance
+
+Every CI build runs the complete test suite with Coverlet and publishes a Cobertura
+coverage artifact. Open the [CI workflow](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml),
+select a successful run, and download `code-coverage-*` to inspect line and branch
+coverage. Coverage is measured from the `DNS.Client` assembly only; tests and generated
+code are excluded. A numeric badge will be added once a stable coverage service is
+configured for this repository.
+
+RFC status is tracked explicitly in the [RFC compliance matrix](docs/dns-rfc-compliance.md).
+The current implementation is a hardened unicast stub resolver: classic DNS message
+encoding/decoding, unknown-record round trips, UDP/TCP fallback, retries, AXFR, and
+modern core record models are covered. EDNS, DNSSEC validation, encrypted transports,
+SVCB/HTTPS, mDNS, dynamic update, and other optional ecosystems remain marked
+`MISSING` or `NOT_APPLICABLE` until implemented and tested.
 
 ## Project layout
 
