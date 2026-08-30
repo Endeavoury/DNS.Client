@@ -23,7 +23,8 @@ its public surface.
 
 ## Install
 
-The package is published to GitHub Packages. Configure the owner feed and install it:
+The package is published to GitHub Packages and nuget.org. Configure the owner feed
+for GitHub Packages, or install directly from nuget.org:
 
 ```bash
 dotnet nuget add source \
@@ -37,6 +38,12 @@ dotnet add package DNS.Client --source github-roygerritse
 ```
 
 The token needs `read:packages`. Keep it outside committed configuration files.
+
+From nuget.org, use the standard source:
+
+```bash
+dotnet add package DNS.Client --source https://api.nuget.org/v3/index.json
+```
 
 ## Query a resolver
 

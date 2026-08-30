@@ -1,7 +1,25 @@
 # Publishing
 
 The GitHub Actions workflow in `.github/workflows/package.yml` builds, tests, and
-creates a package for pull requests and pushes to `master`.
+creates a package for pull requests and pushes to `master`. A version tag publishes
+the package to both GitHub Packages and nuget.org.
+
+## Configure nuget.org publishing
+
+This workflow uses NuGet Trusted Publishing, so no long-lived API key is stored in
+GitHub. In nuget.org account settings, create a Trusted Publishing policy with:
+
+- Repository owner: `Endeavoury`
+- Repository: `DNS.Client`
+- Workflow file: `package.yml`
+- Environment: leave empty unless the workflow is later assigned one
+
+The NuGet account profile name is passed to `NuGet/login@v1` from the optional GitHub
+Actions repository variable `NUGET_USER`. If that variable is absent, the workflow
+uses the GitHub repository owner (`Endeavoury`). Set `NUGET_USER` only if the NuGet
+profile name differs. Trusted Publishing issues a short-lived API key through GitHub
+OIDC immediately before the push; the publish job therefore requests `id-token: write`
+and does not need a `NUGET_API_KEY` secret. See [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
 
 To publish a release to GitHub Packages, push a semantic-version tag prefixed with
 `v`:
@@ -12,10 +30,9 @@ git push origin v1.0.0
 ```
 
 The workflow removes the leading `v`, creates `DNS.Client.1.0.0.nupkg`, and pushes it
-to `https://nuget.pkg.github.com/RoyGerritse/index.json`. Authentication uses the
-workflow's short-lived `GITHUB_TOKEN`; no personal access token needs to be stored in
-the repository. The workflow grants package write permission only to the tag-only
-publish job.
+to `https://nuget.pkg.github.com/RoyGerritse/index.json` and to
+`https://api.nuget.org/v3/index.json`. Both feeds are published only by the tag-only
+job; nuget.org authentication is keyless through Trusted Publishing.
 
 Package versions are immutable. If a release needs correction, create a new tag with
 a new version rather than moving or reusing an existing tag.
