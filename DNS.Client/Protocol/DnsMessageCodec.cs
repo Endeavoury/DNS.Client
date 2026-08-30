@@ -7,6 +7,10 @@ public static class DnsMessageCodec
     public static byte[] Write(DnsMessage message, bool compressNames = true)
     {
         if (message is null) throw new ArgumentNullException(nameof(message));
+        if (message.Header.Reserved != 0)
+            throw new ArgumentException("The RFC 1035 Z bit must be zero.", nameof(message));
+        if (message.Header.OpCode == DnsOpCode.Query && message.Questions.Count > 1)
+            throw new ArgumentException("QDCOUNT greater than one is not valid for OPCODE=QUERY (RFC 9619).", nameof(message));
         ushort qd = Count(message.Questions.Count, "question");
         ushort an = Count(message.Answers.Count, "answer");
         ushort ns = Count(message.Authorities.Count, "authority");

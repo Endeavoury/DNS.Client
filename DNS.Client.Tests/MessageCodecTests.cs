@@ -107,9 +107,7 @@ public class MessageCodecTests
         var message = new DnsMessage(new DnsHeader { Id = 1, OpCode = DnsOpCode.Query });
         message.Questions.Add(new DnsQuestion("one.example"));
         message.Questions.Add(new DnsQuestion("two.example"));
-        byte[] wire = message.ToArray();
-
-        Assert.ThrowsExactly<DnsProtocolException>(() => DnsMessage.Parse(wire));
+        Assert.ThrowsExactly<ArgumentException>(() => message.ToArray());
     }
 
     [TestMethod]
