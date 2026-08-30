@@ -4,33 +4,33 @@ namespace DNS.Client;
 
 public class DnsQuery
 {
-    private readonly HeaderSection headerSection;
-    private readonly QuestionSection questionSection;
-    private readonly ResourceRecordSection resourceRecordSection;
+    private readonly DnsMessage message;
 
     public DnsQuery(DnsQueryRequest request)
     {
-        this.headerSection = new HeaderSection(request.TransactionId, 
-            request.FlagQr,
-            request.FlagOpcode, 
-            request.FlagAuthoritativeAnswer, 
-            request.Truncation, 
-            request.RecursionDesired, 
-            request.RecursionAvailable, 
-            1,
-            0,
-            0,
-            1);
-        this.questionSection = new QuestionSection(request.Questions);
-        this.resourceRecordSection = new ResourceRecordSection("");
+        if (request is null) throw new ArgumentNullException(nameof(request));
+        message = new DnsMessage(new DnsHeader
+        {
+            Id = request.TransactionId,
+            IsResponse = request.FlagQr == FlagQr.Response,
+            OpCode = (DnsOpCode)(byte)request.FlagOpcode,
+            IsAuthoritativeAnswer = request.FlagAuthoritativeAnswer == FlagAuthoritativeAnswer.Owner,
+            IsTruncated = request.Truncation == Truncation.Truncated,
+            RecursionDesired = request.RecursionDesired == RecursionDesired.Desired,
+            RecursionAvailable = request.RecursionAvailable == RecursionAvailable.Available,
+            ResponseCode = request.ResponseCode
+        });
+        foreach (Question question in request.Questions ?? throw new ArgumentNullException(nameof(request.Questions)))
+            message.Questions.Add(new DnsQuestion(question.Domain, question.Type, question.Class));
+        foreach (DnsResourceRecord record in request.Answers) message.Answers.Add(record);
+        foreach (DnsResourceRecord record in request.Authorities) message.Authorities.Add(record);
+        foreach (DnsResourceRecord record in request.Additionals) message.Additionals.Add(record);
     }
 
     public byte[] GetBytes()
     {
-        var allBytes = new List<byte>();
-        allBytes.AddRange(headerSection.GetBytes());
-        allBytes.AddRange(questionSection.GetBytes());
-        allBytes.AddRange(resourceRecordSection.GetBytes());
-        return allBytes.ToArray();
+        return message.ToArray();
     }
+
+    public DnsMessage Message => message;
 }

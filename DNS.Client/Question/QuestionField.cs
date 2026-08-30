@@ -20,24 +20,6 @@ public class QuestionField
 
     public byte[] GetBytes()
     {
-        var bytes = new List<byte>();
-        foreach(var domainSection in DomainSections)
-        {
-            var length = domainSection.Length;
-            bytes.Add(Convert.ToByte(length));
-            foreach (char letter in domainSection)
-            {
-                bytes.Add(Convert.ToByte(letter));
-            }
-        }
-        bytes.Add(0x00);
-
-        // TODO: class and type
-        bytes.Add(0x00);
-        bytes.Add(Convert.ToByte(Type));
-
-        bytes.Add(0x00);
-        bytes.Add(Convert.ToByte(Class));
-        return bytes.ToArray();
+        return DnsMessage.CreateQuery(0, Domain, Type, Class).ToArray()[12..];
     }
 }

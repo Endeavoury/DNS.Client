@@ -1,30 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace DNS.Client.Console;
 
-namespace DNS.Client.Console;
-
-public class Program
+public static class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        var dnsClient = new DnsClient();
-        var request = new DnsQueryRequest()
+        string name = args.Length > 0 ? args[0] : "example.com";
+        var client = new DnsClient();
+        DnsMessage response = await client.QueryAsync(name, QuestionType.A);
+
+        foreach (DnsResourceRecord answer in response.Answers)
         {
-            TransactionId = Convert.ToUInt16("0xa05c", 16),
-            FlagQr = FlagQr.Query,
-            FlagOpcode = FlagOpcode.Query,
-            Truncation = Truncation.Permitted,
-            RecursionDesired = RecursionDesired.Desired,
-            Questions = new List<Question>
-            {
-                new Question
-                {
-                    Domain = "google.nl",
-                    Type = QuestionType.A,
-                    Class = QuestionClass.IN
-                }
-            }
-        };
-        dnsClient.Request(request);
+            if (answer.Data is ARecordData address)
+                System.Console.WriteLine($"{answer.Name} {answer.TimeToLive} IN A {address.Address}");
+        }
     }
 }

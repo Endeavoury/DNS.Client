@@ -41,7 +41,7 @@ public class FlagSection
         var flag1 = new byte();
         flag1 = flag1.SetBitValueAt(7, 1, this.ra.GetByte());
         flag1 = flag1.SetBitValueAt(6, 1, 0);
-        flag1 = flag1.SetBitValueAt(5, 1, 1);
+        flag1 = flag1.SetBitValueAt(5, 1, 0);
         flag1 = flag1.SetBitValueAt(4, 1, 0);
         flag1 = flag1.SetBitValueAt(0, 4, 0);
 

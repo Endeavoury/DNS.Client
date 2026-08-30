@@ -1,6 +1,6 @@
 ﻿namespace DNS.Client;
 
-public enum QuestionType
+public enum QuestionType : ushort
 {
     /// <summary>
     /// 1 a host address
@@ -80,5 +80,9 @@ public enum QuestionType
     /// <summary>
     /// 16 text strings
     /// </summary>
-    TXT = 16
+    TXT = 16,
+    AXFR = 252,
+    MAILB = 253,
+    MAILA = 254,
+    ANY = 255
 }

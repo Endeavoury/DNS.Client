@@ -1,6 +1,6 @@
 ﻿namespace DNS.Client;
 
-public enum QuestionClass
+public enum QuestionClass : ushort
 {
     /// <summary>
     /// 1 the Internet
@@ -21,5 +21,6 @@ public enum QuestionClass
     /// <summary>
     /// 4 Hesiod [Dyer 87]
     /// </summary>
-    HS = 4
+    HS = 4,
+    ANY = 255
 }
