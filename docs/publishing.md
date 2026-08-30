@@ -16,7 +16,7 @@ GitHub. In nuget.org account settings, create a Trusted Publishing policy with:
 
 - Repository owner: `Endeavoury`
 - Repository: `DNS.Client`
-- Workflow file: `package.yml`
+- Workflow file: `release.yml`
 - Environment: leave empty unless the workflow is later assigned one
 
 The NuGet account profile name is passed to `NuGet/login@v1.2.0` from the optional GitHub
@@ -25,6 +25,10 @@ uses the linked NuGet profile `RoyGerritse`. Set `NUGET_USER` only if the NuGet
 profile name differs. Trusted Publishing issues a short-lived API key through GitHub
 OIDC immediately before the push; the publish job therefore requests `id-token: write`
 and does not need a `NUGET_API_KEY` secret. See [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
+
+If you manually push a `v*` tag (instead of letting `release.yml` create it), add a
+second policy for workflow file `package.yml`, because that workflow publishes manual
+tag packages.
 
 To publish a release to GitHub Packages, push a semantic-version tag prefixed with
 `v`:
