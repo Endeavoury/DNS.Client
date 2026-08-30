@@ -1,9 +1,13 @@
 # Publishing
 
-The GitHub Actions workflow in `.github/workflows/package.yml` builds, tests, and
-creates a package for pull requests and pushes to `master`. A push to `master`
-publishes a uniquely versioned `0.0.0-ci.<run-number>` prerelease to both feeds. A
-version tag publishes the stable version to both GitHub Packages and nuget.org.
+The workflows build and test pull requests. Each push to `master` creates a semantic
+release and publishes a stable package to both GitHub Packages and nuget.org. The
+first release is `1.0.0`; later commits increment only the patch component:
+`1.0.1`, `1.0.2`, and so on.
+
+To choose a new major or minor line yourself, create and push a tag such as `v2.0.0`
+or `v1.1.0`. The tag is released immediately, and the next commit then continues
+from that tag (`v2.0.1` or `v1.1.1`).
 
 ## Configure nuget.org publishing
 
@@ -26,14 +30,22 @@ To publish a release to GitHub Packages, push a semantic-version tag prefixed wi
 `v`:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git push origin master
 ```
 
-The workflow removes the leading `v`, creates `DNS.Client.1.0.0.nupkg`, and pushes it
-to `https://nuget.pkg.github.com/RoyGerritse/index.json` and to
-`https://api.nuget.org/v3/index.json`. Both feeds are published only by the tag-only
-job; nuget.org authentication is keyless through Trusted Publishing.
+For a manual major/minor baseline:
+
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+The `master` release workflow will use that tag as the next version baseline.
+
+The workflow creates a GitHub Release and `DNS.Client.1.0.0.nupkg`, then pushes it to
+`https://nuget.pkg.github.com/RoyGerritse/index.json` and
+`https://api.nuget.org/v3/index.json`. GitHub Packages authentication uses the
+workflow token; nuget.org authentication is keyless through Trusted Publishing.
 
 Package versions are immutable. If a release needs correction, create a new tag with
 a new version rather than moving or reusing an existing tag.
