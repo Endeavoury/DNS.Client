@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <PackageId>DNS.Client</PackageId>
+    <PackageId>Endeavoury.DNS.Client</PackageId>
     <Description>Dependency-free RFC 1035 DNS client and wire-format library.</Description>
     <PackageTags>dns;rfc1035;resolver;udp;tcp</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

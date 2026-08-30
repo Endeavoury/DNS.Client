@@ -79,7 +79,7 @@ jobs:
           else
             package_version="0.0.0-ci.${GITHUB_RUN_NUMBER}"
           fi
-          echo "Publishing DNS.Client version $package_version"
+          echo "Publishing Endeavoury.DNS.Client version $package_version"
           dotnet pack DNS.Client/DNS.Client.csproj \
             --configuration Release \
             --output artifacts \

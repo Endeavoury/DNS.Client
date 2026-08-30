@@ -1,6 +1,6 @@
 # DNS.Client
 
-`DNS.Client` is a dependency-free .NET Standard 2.1 DNS client and wire-format library for the
+`Endeavoury.DNS.Client` is a dependency-free .NET Standard 2.1 DNS client and wire-format library for the
 client-side protocol defined by [RFC 1035](https://www.rfc-editor.org/info/rfc1035/).
 
 It supports:
@@ -34,7 +34,7 @@ dotnet nuget add source \
   --name github-roygerritse \
   https://nuget.pkg.github.com/RoyGerritse/index.json
 
-dotnet add package DNS.Client --source github-roygerritse
+dotnet add package Endeavoury.DNS.Client --source github-roygerritse
 ```
 
 The token needs `read:packages`. Keep it outside committed configuration files.
@@ -42,7 +42,7 @@ The token needs `read:packages`. Keep it outside committed configuration files.
 From nuget.org, use the standard source:
 
 ```bash
-dotnet add package DNS.Client --source https://api.nuget.org/v3/index.json
+dotnet add package Endeavoury.DNS.Client --source https://api.nuget.org/v3/index.json
 ```
 
 ## Query a resolver

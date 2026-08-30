@@ -46,7 +46,7 @@ git push origin v2.0.0
 
 The `master` release workflow will use that tag as the next version baseline.
 
-The workflow creates a GitHub Release and `DNS.Client.1.0.0.nupkg`, then pushes it to
+The workflow creates a GitHub Release and `Endeavoury.DNS.Client.1.0.0.nupkg`, then pushes it to
 `https://nuget.pkg.github.com/RoyGerritse/index.json` and
 `https://api.nuget.org/v3/index.json`. GitHub Packages authentication uses the
 workflow token; nuget.org authentication is keyless through Trusted Publishing.
@@ -67,7 +67,7 @@ dotnet nuget add source \
   --name github-roygerritse \
   https://nuget.pkg.github.com/RoyGerritse/index.json
 
-dotnet add package DNS.Client --source github-roygerritse
+dotnet add package Endeavoury.DNS.Client --source github-roygerritse
 ```
 
 Do not commit a token-bearing NuGet configuration file.
