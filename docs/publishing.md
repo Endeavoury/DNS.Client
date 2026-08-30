@@ -17,7 +17,7 @@ GitHub. In nuget.org account settings, create a Trusted Publishing policy with:
 
 The NuGet account profile name is passed to `NuGet/login@v1` from the optional GitHub
 Actions repository variable `NUGET_USER`. If that variable is absent, the workflow
-uses the GitHub repository owner (`Endeavoury`). Set `NUGET_USER` only if the NuGet
+uses the linked NuGet profile `RoyGerritse`. Set `NUGET_USER` only if the NuGet
 profile name differs. Trusted Publishing issues a short-lived API key through GitHub
 OIDC immediately before the push; the publish job therefore requests `id-token: write`
 and does not need a `NUGET_API_KEY` secret. See [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing).
