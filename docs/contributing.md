@@ -1,26 +1,27 @@
-# Contributing
+# Contributing to Ratatoskr
 
-## Local setup
+Build and test native changes first:
 
-Install the latest .NET SDK, clone the repository, and run:
-
-```bash
-dotnet restore DNS.Client.sln
-dotnet build DNS.Client.sln --configuration Release
-dotnet test DNS.Client.sln --configuration Release
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DRATOS_BUILD_TESTS=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 ```
 
-The library targets `netstandard2.0` and `netstandard2.1`; tests and the sample use the current SDK.
+The equivalent preset workflow is `cmake --preset dev`, `cmake --build --preset dev`,
+and `ctest --preset dev`. Keep new component sources in their local `CMakeLists.txt`;
+the root build file should remain orchestration-only.
 
-## Making protocol changes
+For Linux sanitizer checks add `-DRATOS_ENABLE_SANITIZERS=ON`. Clang/libFuzzer
+targets use `-DRATOS_BUILD_FUZZERS=ON`.
 
-Add or update a focused codec test for every new record or wire rule. Test both
-compressed and uncompressed names, malformed lengths, and a round trip through
-`Parse(ToArray(message))`. Never trust RDLENGTH or compression pointers from input.
+Managed changes require .NET 8:
 
-## Pull requests
+```sh
+dotnet build bindings/dotnet/Ratatoskr.sln
+LD_LIBRARY_PATH="$PWD/build" dotnet test bindings/dotnet/tests/Ratatoskr.Compatibility.Tests/Ratatoskr.Compatibility.Tests.csproj
+```
 
-Keep commits focused, document public APIs with XML comments, and update the relevant
-guide under `docs/`. Pull requests run the build and test workflow. Pushing to
-`master` creates the next patch release automatically, so use a feature branch for
-normal development.
+Keep public native symbols prefixed `ratos_`, ownership explicit, network reads
+bounds-checked, the CLI thin, and protocol behavior in C. Add malformed-input tests for
+every parser change. Do not add protocol implementations to language wrappers.

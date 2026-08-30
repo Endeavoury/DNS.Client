@@ -13,6 +13,14 @@
 *.sln.docstates
 
 # Build results
+/build/
+/build-*/
+/out/
+/artifacts/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
 [Dd]ebug/
 [Rr]elease/
 x64/
@@ -199,6 +207,9 @@ $RECYCLE.BIN/
 
 # dotnet stuff
 project.lock.json
+
+# Native binaries staged into language packages are release output.
+bindings/dotnet/runtimes/*/native/*
 
 # VS 2015+
 *.vc.vc.opendb

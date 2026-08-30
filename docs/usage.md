@@ -1,4 +1,8 @@
-# Package guide
+# Legacy .NET compatibility guide
+
+This page documents the preserved `DNS.Client` namespace. New applications should use
+the `Ratatoskr` API shown in the repository README; ordinary legacy queries now call
+the same native C core.
 
 ## High-level resolver
 

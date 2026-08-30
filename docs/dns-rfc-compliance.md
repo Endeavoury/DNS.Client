@@ -1,20 +1,21 @@
 # DNS RFC compliance matrix
 
-This audit describes the current repository before the modern-DNS implementation
-phases. `COMPLETE` means the applicable behavior is implemented and covered by
+This historical audit describes the preserved managed compatibility surface; the
+canonical native implementation is documented in [dns.md](dns.md). `COMPLETE` means the applicable behavior is implemented and covered by
 tests; `PARTIAL` means the basic behavior exists but one or more current requirements
 remain; `MISSING` means no implementation exists. Statuses are deliberately scoped to
 this package's role as a stub/client library, not an authoritative or recursive server.
 
 ## Repository architecture audit
 
-- **Packet encoder/decoder:** `DNS.Client/Protocol/DnsMessageCodec.cs` and `DnsWire.cs`.
+- **Packet encoder/decoder:** `bindings/dotnet/src/Ratatoskr.Compatibility/Protocol/DnsMessageCodec.cs` and `DnsWire.cs`.
 - **Message model:** `DnsProtocol.cs`, `Question/*`, and `Resource/DnsResourceRecord.cs`.
 - **Transport:** `DnsClient.cs` (UDP, TCP framing, truncation fallback, AXFR).
-- **Resolver policy:** `Lookup/LookupClient.cs` (server selection and TTL cache).
+- **Resolver policy:** `bindings/dotnet/src/Ratatoskr.Compatibility/LookupClient.cs` (server selection and TTL cache).
 - **Cache:** in-memory positive cache in `LookupClient`; no negative/stale tiers yet.
 - **Authoritative, recursive, DNSSEC, EDNS, DoT/DoH/DoQ, mDNS/DNS-SD:** not present.
-- **Tests:** `DNS.Client.Tests/MessageCodecTests.cs` and `TransportTests.cs`; no fuzz project yet.
+- **Tests:** native parser/builder tests and fuzz targets under `tests/dns` and `fuzz/dns`,
+  plus managed compatibility tests under `bindings/dotnet/tests/Ratatoskr.Compatibility.Tests`.
 
 ## Security findings from the audit
 
@@ -32,10 +33,10 @@ each change is covered by focused malformed-input or wire-format tests.
 | --- | ------- | -------------------------- | ------ | ------------- | ----- | ----- |
 | 1034 | DNS concepts, names, delegation | Yes | PARTIAL | `Protocol/DnsWire.cs`, `DnsClient.cs` | `MessageCodecTests` | Name and stub-query behavior exist; no iterative delegation. |
 | 1035 | Classic DNS message and transport | Yes | PARTIAL | `Protocol/*`, `DnsClient.cs` | `MessageCodecTests`, `TransportTests` | Core codec/UDP/TCP/AXFR exist; header and modern update gaps remain. |
-| 1123 | Host DNS resolver requirements | Yes | PARTIAL | `DnsClient.cs`, `Lookup/LookupClient.cs` | `TransportTests` | Bounded retries and cancellation exist; resolver policy needs richer error classes. |
+| 1123 | Host DNS resolver requirements | Yes | PARTIAL | `DnsClient.cs`, `bindings/dotnet/src/Ratatoskr.Compatibility/LookupClient.cs` | `TransportTests` | Bounded retries and cancellation exist; resolver policy needs richer error classes. |
 | 1982 | Serial number arithmetic | AXFR/zone consumers only | MISSING | — | — | Needed to compare SOA serials safely. |
 | 2181 | DNS clarifications and RR TTL/class rules | Yes | PARTIAL | `DnsMessageCodec.cs`, `DnsResourceRecord.cs` | codec tests | TTL and class are parsed; RRset and canonical validation are incomplete. |
-| 2308 | Negative caching | Yes | MISSING | `Lookup/LookupClient.cs` | — | Current cache is positive-answer-only and must not cache failures accidentally. |
+| 2308 | Negative caching | Yes | MISSING | `bindings/dotnet/src/Ratatoskr.Compatibility/LookupClient.cs` | — | Current cache is positive-answer-only and must not cache failures accidentally. |
 | 3597 | Unknown RR type handling | Yes | COMPLETE | `DnsMessageCodec.cs`, `RawRecordData` | round-trip tests | Unknown TYPE/RDATA is retained as opaque bytes. |
 | 4343 | DNS case insensitivity | Yes | PARTIAL | `DnsWireWriter`, response validation | — | Comparison is case-insensitive; canonical presentation/normalization needs tests. |
 | 4592 | Wildcard semantics | Stub only | NOT_APPLICABLE | — | — | Wildcard synthesis belongs to authoritative/recursive resolution. |
@@ -48,7 +49,7 @@ each change is covered by focused malformed-input or wire-format tests.
 | 7873 | DNS Cookies | Optional | MISSING | — | — | Requires EDNS option model and resolver policy. |
 | 8020 | NXDOMAIN cut | Recursive only | NOT_APPLICABLE | — | — | This package does not perform iterative recursion. |
 | 8198 | Aggressive DNSSEC caching | Recursive/validator only | NOT_APPLICABLE | — | — | No local DNSSEC validator or recursive resolver. |
-| 8767 | Serve stale | Optional | MISSING | `Lookup/LookupClient.cs` | — | Cache policy does not distinguish stale data. |
+| 8767 | Serve stale | Optional | MISSING | `bindings/dotnet/src/Ratatoskr.Compatibility/LookupClient.cs` | — | Cache policy does not distinguish stale data. |
 | 8914 | Extended DNS Errors | Yes | MISSING | — | — | EDE option and exposure are absent. |
 | 9156 | QNAME minimization | Recursive only | NOT_APPLICABLE | — | — | Explicitly a stub resolver; no iterative name-server walk. |
 | 9499 | DNS terminology | Yes | PARTIAL | docs | — | Terminology is used inconsistently and will be normalized in API docs. |

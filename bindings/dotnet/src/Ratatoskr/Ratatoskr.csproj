@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>Ratatoskr</PackageId>
+    <Description>Ratatoskr cross-language networking SDK. DNS is provided by the shared native C core.</Description>
+    <PackageTags>ratatoskr;dns;networking;native</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Endeavoury/Ratatoskr</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\runtimes\**\*" Pack="true" PackagePath="runtimes\%(RecursiveDir)%(Filename)%(Extension)" Condition="Exists('..\..\runtimes')" />
+  </ItemGroup>
+</Project>

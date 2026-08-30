@@ -1,0 +1,25 @@
+pkgname=ratatoskr
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Cross-language networking SDK and ratos CLI'
+arch=('x86_64' 'aarch64')
+url='https://github.com/Endeavoury/Ratatoskr'
+license=('MIT')
+depends=('glibc')
+makedepends=('cmake')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cmake -S "Ratatoskr-$pkgver" -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DRATOS_BUILD_TESTS=ON
+  cmake --build build --parallel
+}
+
+check() {
+  ctest --test-dir build --output-on-failure
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 "Ratatoskr-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

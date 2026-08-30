@@ -1,4 +1,7 @@
-# API reference
+# Legacy .NET compatibility API reference
+
+These types remain for source migration. The canonical interoperability contract is
+the C ABI in [abi.md](abi.md), and new .NET code should prefer `namespace Ratatoskr`.
 
 ## High-level API
 

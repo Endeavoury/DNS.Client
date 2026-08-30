@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Endeavoury.DNS.Client</PackageId>
+    <AssemblyName>DNS.Client</AssemblyName>
+    <RootNamespace>DNS.Client</RootNamespace>
+    <Description>Compatibility API for Ratatoskr, backed by the portable native DNS core.</Description>
+    <PackageTags>ratatoskr;dns;rfc1035;resolver;native</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Endeavoury/Ratatoskr</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ratatoskr\Ratatoskr.csproj" />
+    <None Include="..\..\..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\..\..\docs\**\*.md" Pack="true" PackagePath="docs\" />
+  </ItemGroup>
+
+</Project>

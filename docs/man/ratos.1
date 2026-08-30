@@ -1,0 +1,37 @@
+.TH RATOS 1 "August 2026" "Ratatoskr 0.1.0" "User Commands"
+.SH NAME
+ratos \- Ratatoskr networking toolkit
+.SH SYNOPSIS
+.B ratos dns
+.RI [ type ] " name " [ options ]
+.SH DESCRIPTION
+.B ratos
+is the native CLI for Ratatoskr. The initial command queries DNS through the same C
+core used by language bindings.
+.SH DNS TYPES
+A, AAAA, CNAME, MX, TXT, NS, PTR, SOA, SRV, NAPTR, and CAA.
+.SH OPTIONS
+.TP
+.BR \-s ", " \-\-server " " address
+Use an explicit IPv4 or IPv6 resolver.
+.TP
+.BR \-\-port " " port
+Use a resolver port other than 53.
+.TP
+.BR \-\-timeout " " milliseconds
+Set the transport timeout.
+.TP
+.B \-\-json
+Write stable structured JSON.
+.TP
+.B \-\-verbose
+Write diagnostics to stderr.
+.SH EXIT STATUS
+0 success; 1 general failure; 2 invalid arguments; 3 timeout; 4 network failure;
+5 DNS/protocol failure; 6 unsupported operation; 7 permission denied.
+.SH EXAMPLES
+.nf
+ratos dns a example.com
+ratos dns ptr 1.1.1.1
+ratos dns example.com --server 1.1.1.1 --json
+.fi

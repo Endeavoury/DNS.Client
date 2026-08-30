@@ -1,123 +1,121 @@
-# DNS.Client
+# Ratatoskr
 
-[![Build and test](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml/badge.svg)](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml)
-[![Release](https://github.com/Endeavoury/DNS.Client/actions/workflows/package.yml/badge.svg)](https://github.com/Endeavoury/DNS.Client/actions/workflows/package.yml)
-[![NuGet](https://img.shields.io/nuget/v/Endeavoury.DNS.Client.svg)](https://www.nuget.org/packages/Endeavoury.DNS.Client)
-[![GitHub release](https://img.shields.io/github/v/release/Endeavoury/DNS.Client)](https://github.com/Endeavoury/DNS.Client/releases)
-[![Coverage](https://img.shields.io/badge/coverage-Cobertura%20in%20CI-blue)](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml)
-[![RFC audit](https://img.shields.io/badge/RFC%20compliance-audited-orange)](docs/dns-rfc-compliance.md)
+[![Build and test](https://github.com/Endeavoury/Ratatoskr/actions/workflows/ci.yml/badge.svg)](https://github.com/Endeavoury/Ratatoskr/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Endeavoury/Ratatoskr?label=release)](https://github.com/Endeavoury/Ratatoskr/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`DNS.Client` is a dependency-free, wire-compatible DNS resolver library for .NET.
-It implements the client-side protocol described by [RFC 1035](https://www.rfc-editor.org/rfc/rfc1035),
-with a modern high-level API for application lookups and a low-level API for protocol work.
+Ratatoskr is a cross-language networking SDK with one portable C implementation,
+many language bindings, and one native command: `ratos`. DNS is the first production
+protocol. Future protocols will be added as independent modules without duplicating
+their implementations in each language.
 
-## Why this package?
+> **Milestone status:** the native DNS path, CLI, C ABI, and .NET binding are usable.
+> The ABI is version 1, but the product is pre-1.0 and its API should still be treated
+> as an initial compatibility contract.
 
-- Works on runtimes implementing **.NET Standard 2.0 or 2.1**.
-- Uses UDP by default, retries across resolvers, and falls back to TCP for truncated responses.
-- Preserves unknown record types as raw RDATA instead of discarding bytes.
-- Supports synchronous and asynchronous APIs, cancellation, timeouts, AXFR, and reverse DNS.
-- Includes a TTL-aware `LookupClient` cache and typed record collection helpers.
-- Has no third-party runtime dependencies.
+## Build
 
-## Install
+Requirements: a C11 compiler and CMake 3.20 or newer.
 
-```bash
-dotnet add package Endeavoury.DNS.Client
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 ```
 
-## A first lookup
+On multi-configuration generators, add `--config Release` to build, test, and install.
+
+```sh
+cmake --install build --prefix /usr/local
+```
+
+For repeatable local builds, equivalent `dev`, `release`, and `sanitize` CMake
+presets are included:
+
+```sh
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev
+```
+
+This installs `ratos`, the shared/static library, public headers, pkg-config metadata,
+and CMake target metadata. The native core has no .NET dependency.
+
+## CLI
+
+```sh
+ratos dns example.com
+ratos dns a example.com
+ratos dns aaaa example.com
+ratos dns mx example.com
+ratos dns ptr 1.1.1.1
+ratos dns ptr 2001:4860:4860::8888
+ratos dns example.com --server 1.1.1.1
+ratos dns example.com --timeout 3000
+ratos dns example.com --json
+```
+
+Human output writes only answer data to stdout. Errors and `--verbose` diagnostics go
+to stderr, so `IP="$(ratos dns a example.com | head -1)"` is safe. See
+[DNS behavior](docs/dns.md) for types, JSON, timeouts, and exit codes.
+
+## C API
+
+```c
+#include <ratatoskr/ratatoskr.h>
+
+ratos_context *ctx = ratos_context_create();
+ratos_dns_query_options options;
+ratos_dns_query_options_init(&options);
+options.type = RATOS_DNS_A;
+options.server = "1.1.1.1";
+
+ratos_dns_result *result = NULL;
+ratos_error error = ratos_dns_query(ctx, "example.com", &options, &result);
+if (error == RATOS_OK) {
+    for (size_t i = 0; i < ratos_dns_result_count(result); ++i)
+        puts(ratos_dns_record_text(ratos_dns_result_record(result, i)));
+}
+ratos_dns_result_destroy(result);
+ratos_context_destroy(ctx);
+```
+
+All returned allocations stay owned by Ratatoskr. See [ABI policy](docs/abi.md).
+
+## .NET
 
 ```csharp
-using System.Net;
-using DNS.Client;
+using Ratatoskr;
 
-var lookup = new LookupClient();
-var response = await lookup.QueryAsync("example.com", QuestionType.A);
-
-foreach (var address in response.Answers.ARecords())
-    Console.WriteLine(address.Address);
+var result = await Dns.QueryAsync("example.com", DnsRecordType.A);
+foreach (var record in result.Answers)
+    Console.WriteLine(record);
 ```
 
-For deterministic infrastructure or tests, specify resolvers explicitly:
+The .NET package uses source-generated native interop and `SafeHandle`; it calls
+`libratatoskr` directly. The legacy `DNS.Client` namespace remains as a compatibility
+adapter for existing consumers. See [migration notes](docs/migration-dotnet.md).
 
-```csharp
-var lookup = new LookupClient(new LookupClientOptions
-{
-    NameServers = new[] { new NameServer(IPAddress.Parse("1.1.1.1")) },
-    Timeout = TimeSpan.FromSeconds(2),
-    Retries = 3,
-    EnableCache = true
-});
-```
-
-## Capabilities at a glance
-
-| Area | Included |
-| --- | --- |
-| Queries | A, AAAA, NS, CNAME, MX, PTR, SOA, TXT, SRV, NAPTR, CAA, HINFO, MINFO, WKS and more |
-| Transport | UDP, TCP framing, truncation fallback, retries, cancellation |
-| Message format | Header flags, all four sections, name compression, pointer-loop protection |
-| Resolver features | Server discovery, multiple endpoints, TTL cache, reverse lookup, AXFR |
-| Extensibility | Unknown QTYPE/CLASS and RDATA are retained losslessly |
-| Tooling | .NET Standard 2.0/2.1 library, tests, console sample, GitHub Actions releases |
-
-## Choose the right API
-
-| Need | API |
-| --- | --- |
-| Normal application lookup | `LookupClient.QueryAsync` |
-| A specific resolver/port | `LookupClientOptions.NameServers` or `DnsClient(IPEndPoint[])` |
-| Custom opcode, sections, or raw records | `DnsMessage` + `DnsMessageCodec` |
-| Zone transfer | `TransferZoneAsync` |
-| Inspect every byte | `DnsMessage.Parse` / `DnsMessage.ToArray` |
-
-## Documentation
-
-- [Usage guide](docs/usage.md) — queries, options, records, cancellation, and examples.
-- [DNS fundamentals](docs/dns-fundamentals.md) — names, records, recursion, caching, and transport.
-- [Technical architecture](docs/architecture.md) — wire codec, resolver pipeline, and failure handling.
-- [Record reference](docs/records.md) — supported types, models, and unknown-record behavior.
-- [API reference](docs/api-reference.md) — public types and recommended usage patterns.
-- [Troubleshooting](docs/troubleshooting.md) — timeouts, truncation, NXDOMAIN, and package diagnostics.
-- [Contributing](docs/contributing.md) — local development, tests, style, and pull requests.
-- [Publishing](docs/publishing.md) — semantic versions, GitHub Releases, and Trusted Publishing.
-
-## Coverage and RFC compliance
-
-Every CI build runs the complete test suite with Coverlet and publishes a Cobertura
-coverage artifact. Open the [CI workflow](https://github.com/Endeavoury/DNS.Client/actions/workflows/ci.yml),
-select a successful run, and download `code-coverage-*` to inspect line and branch
-coverage. Coverage is measured from the `DNS.Client` assembly only; tests and generated
-code are excluded. A numeric badge will be added once a stable coverage service is
-configured for this repository.
-
-RFC status is tracked explicitly in the [RFC compliance matrix](docs/dns-rfc-compliance.md).
-The current implementation is a hardened unicast stub resolver: classic DNS message
-encoding/decoding, unknown-record round trips, UDP/TCP fallback, retries, AXFR, and
-modern core record models are covered. EDNS, DNSSEC validation, encrypted transports,
-SVCB/HTTPS, mDNS, dynamic update, and other optional ecosystems remain marked
-`MISSING` or `NOT_APPLICABLE` until implemented and tested.
-
-## Project layout
+## Layout
 
 ```text
-DNS.Client/             Library source
-DNS.Client.Tests/       Protocol and transport tests
-DNS.Client.Console/     Small command-line example
-docs/                   Developer and protocol documentation
-.github/workflows/      Build, test, release, and package publishing
+include/ratatoskr/       stable public C API
+src/core/                protocol-independent runtime
+src/protocols/<name>/    independently built protocol modules
+cli/commands/            thin command adapters and registry
+bindings/<language>/     language wrappers, tests, and packaging
+tests/                   native unit, ABI, fixture, and integration tests
+fuzz/<protocol>/         parser fuzz targets and corpora
+cmake/                   reusable build policy and installation modules
+packaging/               native operating-system packaging
+docs/                    architecture, ABI, protocol, and binding contracts
 ```
 
-## Compatibility and security
+Read the [documentation index](docs/README.md), [architecture](docs/architecture.md),
+[repository layout](docs/repository-layout.md),
+[binding roadmap](bindings/README.md), [DNS documentation](docs/dns.md), and the
+[C ABI contract](docs/abi.md). Contributions should keep the central rule intact:
 
-The library targets .NET Standard 2.0 and 2.1 and does not execute code received from DNS
-servers. DNS answers are untrusted input: validate names and record content before
-using them in security-sensitive decisions. Classic DNS provides no confidentiality
-or authenticity; use a trusted transport or DNSSEC-aware infrastructure when those
-properties are required.
-
-## License
+**One implementation. Many languages. One CLI.**
 
 Released under the [MIT License](LICENSE).
