@@ -80,6 +80,26 @@ jobs:
       - run: cmake --build build-sanitize --parallel
       - run: ctest --test-dir build-sanitize --output-on-failure
 
+  java-binding:
+    name: Java 22 FFM binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '22'
+          cache: maven
+          cache-dependency-path: bindings/java/pom.xml
+      - name: Build native core
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DRATOS_BUILD_CLI=OFF -DRATOS_BUILD_TESTS=OFF
+          cmake --build build --parallel
+      - name: Verify Java to native DNS path
+        run: >-
+          mvn --batch-mode --file bindings/java/pom.xml verify
+          -Dratatoskr.library.path=${{ github.workspace }}/build/libratatoskr.so
+
   package-smoke:
     name: NuGet package layout smoke test
     runs-on: ubuntu-latest

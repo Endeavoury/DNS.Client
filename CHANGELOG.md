@@ -8,5 +8,6 @@
   reverse IPv4/IPv6, common typed records, and unknown RDATA preservation.
 - Added human and stable JSON CLI rendering.
 - Added idiomatic .NET native binding and a `DNS.Client` compatibility adapter.
+- Added a Java 22+ FFM binding and Maven Central-ready package with bundled-native
+  loading, immutable DNS results, async adaptation, and native integration tests.
 - Added native tests, fuzz targets, sanitizer option, packaging groundwork, and docs.
-

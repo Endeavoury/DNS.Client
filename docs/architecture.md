@@ -32,6 +32,11 @@ optional `cli/commands/<name>.c`. Ratatoskr deliberately has no inheritance-like
 generic protocol framework; normal sockets and small composable helpers are enough
 until real shared requirements emerge.
 
+The Java binding targets Java 22 or newer and uses the finalized Foreign Function &
+Memory API. It creates a context per query, copies native results into immutable Java
+values, and destroys native ownership before returning. Published Maven artifacts may
+bundle platform libraries, but those files are builds of the same canonical C source.
+
 ## Result and ABI design
 
 Contexts and DNS results are opaque. Records are borrowed opaque views owned by their

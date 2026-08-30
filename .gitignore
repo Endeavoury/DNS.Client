@@ -207,9 +207,14 @@ $RECYCLE.BIN/
 
 # dotnet stuff
 project.lock.json
+**/.flattened-pom.xml
+bindings/java/target/
 
 # Native binaries staged into language packages are release output.
 bindings/dotnet/runtimes/*/native/*
+bindings/java/src/main/resources/META-INF/native/*/*.so
+bindings/java/src/main/resources/META-INF/native/*/*.dylib
+bindings/java/src/main/resources/META-INF/native/*/*.dll
 
 # VS 2015+
 *.vc.vc.opendb

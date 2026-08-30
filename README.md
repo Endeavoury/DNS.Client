@@ -96,6 +96,20 @@ The .NET package uses source-generated native interop and `SafeHandle`; it calls
 `libratatoskr` directly. The legacy `DNS.Client` namespace remains as a compatibility
 adapter for existing consumers. See [migration notes](docs/migration-dotnet.md).
 
+## Java
+
+```java
+import io.github.endeavoury.ratatoskr.DnsRecordType;
+import io.github.endeavoury.ratatoskr.Ratatoskr;
+
+var result = Ratatoskr.dns().query("example.com", DnsRecordType.A);
+result.answers().forEach(record -> System.out.println(record.text()));
+```
+
+The Java 22+ package uses the finalized Foreign Function & Memory API and bundles the
+same native core for supported release platforms. See the
+[Java and Maven guide](bindings/java/README.md).
+
 ## Layout
 
 ```text

@@ -11,7 +11,7 @@ an independent DNS implementation or parse CLI output.
 | C# / .NET | NuGet | `bindings/dotnet/` | implemented foundation |
 | JavaScript / TypeScript | npm | `bindings/node/` | design placeholder |
 | Python | PyPI | `bindings/python/` | design placeholder |
-| Java | Maven Central | `bindings/java/` | design placeholder |
+| Java | Maven Central | `bindings/java/` | implemented Java 22+ FFM binding |
 | Kotlin | Maven Central | `bindings/kotlin/` | queued; share JVM native layer with Java |
 | Rust | crates.io | `bindings/rust/` | design placeholder |
 | PHP | Packagist | `bindings/php/` | queued |
