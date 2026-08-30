@@ -12,7 +12,7 @@ with a modern high-level API for application lookups and a low-level API for pro
 
 ## Why this package?
 
-- Works on every runtime implementing **.NET Standard 2.1**.
+- Works on runtimes implementing **.NET Standard 2.0 or 2.1**.
 - Uses UDP by default, retries across resolvers, and falls back to TCP for truncated responses.
 - Preserves unknown record types as raw RDATA instead of discarding bytes.
 - Supports synchronous and asynchronous APIs, cancellation, timeouts, AXFR, and reverse DNS.
@@ -59,7 +59,7 @@ var lookup = new LookupClient(new LookupClientOptions
 | Message format | Header flags, all four sections, name compression, pointer-loop protection |
 | Resolver features | Server discovery, multiple endpoints, TTL cache, reverse lookup, AXFR |
 | Extensibility | Unknown QTYPE/CLASS and RDATA are retained losslessly |
-| Tooling | .NET Standard 2.1 library, tests, console sample, GitHub Actions releases |
+| Tooling | .NET Standard 2.0/2.1 library, tests, console sample, GitHub Actions releases |
 
 ## Choose the right API
 
@@ -94,7 +94,7 @@ docs/                   Developer and protocol documentation
 
 ## Compatibility and security
 
-The library targets .NET Standard 2.1 and does not execute code received from DNS
+The library targets .NET Standard 2.0 and 2.1 and does not execute code received from DNS
 servers. DNS answers are untrusted input: validate names and record content before
 using them in security-sensitive decisions. Classic DNS provides no confidentiality
 or authenticity; use a trusted transport or DNSSEC-aware infrastructure when those

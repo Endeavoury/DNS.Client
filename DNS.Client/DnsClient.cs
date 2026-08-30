@@ -171,8 +171,8 @@ public sealed class DnsClient
     {
         if (payload.Length > ushort.MaxValue) throw new DnsProtocolException("A TCP DNS message cannot exceed 65535 octets.");
         byte[] prefix = { (byte)(payload.Length >> 8), (byte)payload.Length };
-        await stream.WriteAsync(prefix.AsMemory(), token).ConfigureAwait(false);
-        await stream.WriteAsync(payload.AsMemory(), token).ConfigureAwait(false);
+        await stream.WriteAsync(prefix, 0, prefix.Length, token).ConfigureAwait(false);
+        await stream.WriteAsync(payload, 0, payload.Length, token).ConfigureAwait(false);
     }
 
     private static async Task<byte[]> ReadFrameAsync(NetworkStream stream, CancellationToken token)
@@ -191,7 +191,7 @@ public sealed class DnsClient
         int read = 0;
         while (read < buffer.Length)
         {
-            int count = await stream.ReadAsync(buffer.AsMemory(read), token).ConfigureAwait(false);
+            int count = await stream.ReadAsync(buffer, read, buffer.Length - read, token).ConfigureAwait(false);
             if (count == 0) throw new IOException("The DNS TCP connection closed before a complete message arrived.");
             read += count;
         }

@@ -27,9 +27,11 @@ required.
 
 ## Compatibility
 
-The library targets .NET Standard 2.1. It can be referenced by applications whose
-runtime implements .NET Standard 2.1, including modern .NET releases and .NET Core
-3.0 or newer. It does not depend on another DNS or networking package.
+The library targets .NET Standard 2.0 and 2.1. It can be referenced by applications
+whose runtime implements either standard, including .NET Framework 4.6.1+ (through
+the .NET Standard 2.0 compatibility surface), .NET Core, and modern .NET releases.
+The netstandard2.0 build uses the small `System.Memory` compatibility package and
+does not depend on another DNS or networking package.
 
 ## Create a client
 

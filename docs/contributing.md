@@ -10,7 +10,7 @@ dotnet build DNS.Client.sln --configuration Release
 dotnet test DNS.Client.sln --configuration Release
 ```
 
-The library targets `netstandard2.1`; tests and the sample use the current SDK.
+The library targets `netstandard2.0` and `netstandard2.1`; tests and the sample use the current SDK.
 
 ## Making protocol changes
 
