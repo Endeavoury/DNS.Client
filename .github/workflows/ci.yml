@@ -37,7 +37,21 @@ jobs:
         run: dotnet build DNS.Client.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test DNS.Client.Tests/DNS.Client.Tests.csproj --configuration Release --no-build
+        run: >-
+          dotnet test DNS.Client.Tests/DNS.Client.Tests.csproj
+          --configuration Release
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --settings coverlet.runsettings
+          --results-directory artifacts/coverage
+
+      - name: Publish coverage summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-${{ github.run_number }}
+          path: artifacts/coverage/
+          if-no-files-found: warn
 
       - name: Verify package creation
         run: >-

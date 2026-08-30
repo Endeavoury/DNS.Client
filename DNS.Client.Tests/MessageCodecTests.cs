@@ -68,6 +68,27 @@ public class MessageCodecTests
     }
 
     [TestMethod]
+    public void RoundTripsModernRecordModels()
+    {
+        var message = new DnsMessage(new DnsHeader { Id = 9, IsResponse = true });
+        message.Answers.Add(new DnsResourceRecord("owner.example", QuestionType.AAAA, QuestionClass.IN, 60,
+            new AaaaRecordData(IPAddress.Parse("2001:db8::1"))));
+        message.Answers.Add(new DnsResourceRecord("owner.example", QuestionType.SRV, QuestionClass.IN, 60,
+            new SrvRecordData(1, 2, 443, "service.example")));
+        message.Answers.Add(new DnsResourceRecord("owner.example", QuestionType.NAPTR, QuestionClass.IN, 60,
+            new NAPTRRecordData(10, 20, "s", "SIP+D2U", "", "_sip._udp.example")));
+        message.Answers.Add(new DnsResourceRecord("owner.example", QuestionType.CAA, QuestionClass.IN, 60,
+            new CaaRecordData(0, "issue", "letsencrypt.org")));
+
+        DnsMessage parsed = DnsMessage.Parse(message.ToArray());
+
+        Assert.AreEqual(IPAddress.Parse("2001:db8::1"), ((AaaaRecordData)parsed.Answers[0].Data).Address);
+        Assert.AreEqual(443, ((SrvRecordData)parsed.Answers[1].Data).Port);
+        Assert.AreEqual("_sip._udp.example", ((NAPTRRecordData)parsed.Answers[2].Data).Replacement);
+        Assert.AreEqual("letsencrypt.org", ((CaaRecordData)parsed.Answers[3].Data).Value);
+    }
+
+    [TestMethod]
     public void RejectsCompressionPointerLoop()
     {
         byte[] invalid = {
