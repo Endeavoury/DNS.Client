@@ -94,7 +94,7 @@ jobs:
           --skip-duplicate
 
       - name: NuGet login (Trusted Publishing)
-        uses: NuGet/login@v1
+        uses: NuGet/login@v1.2.0
         id: nuget-login
         with:
           user: ${{ vars.NUGET_USER || 'RoyGerritse' }}

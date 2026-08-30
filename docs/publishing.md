@@ -15,7 +15,7 @@ GitHub. In nuget.org account settings, create a Trusted Publishing policy with:
 - Workflow file: `package.yml`
 - Environment: leave empty unless the workflow is later assigned one
 
-The NuGet account profile name is passed to `NuGet/login@v1` from the optional GitHub
+The NuGet account profile name is passed to `NuGet/login@v1.2.0` from the optional GitHub
 Actions repository variable `NUGET_USER`. If that variable is absent, the workflow
 uses the linked NuGet profile `RoyGerritse`. Set `NUGET_USER` only if the NuGet
 profile name differs. Trusted Publishing issues a short-lived API key through GitHub
