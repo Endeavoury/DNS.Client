@@ -50,7 +50,8 @@ internal sealed class DnsWireWriter
                 UInt16((ushort)(0xc000 | pointer));
                 return;
             }
-            if (compress && Position < 0x4000) suffixOffsets.TryAdd(suffix, (ushort)Position);
+            if (compress && Position < 0x4000 && !suffixOffsets.ContainsKey(suffix))
+                suffixOffsets[suffix] = (ushort)Position;
 
             byte[] labelBytes = labels[index];
             Byte((byte)labelBytes.Length);
@@ -146,7 +147,7 @@ internal ref struct DnsWireReader
     public ushort UInt16()
     {
         Ensure(2);
-        ushort value = BinaryPrimitives.ReadUInt16BigEndian(data[Position..]);
+        ushort value = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(Position));
         Position += 2;
         return value;
     }
@@ -154,7 +155,7 @@ internal ref struct DnsWireReader
     public uint UInt32()
     {
         Ensure(4);
-        uint value = BinaryPrimitives.ReadUInt32BigEndian(data[Position..]);
+        uint value = BinaryPrimitives.ReadUInt32BigEndian(data.Slice(Position));
         Position += 4;
         return value;
     }
@@ -195,7 +196,7 @@ internal ref struct DnsWireReader
             if (length == 0)
             {
                 Position = resume ?? cursor;
-                return labels.Count == 0 ? "." : string.Join('.', labels);
+                return labels.Count == 0 ? "." : string.Join(".", labels);
             }
             if (length > 63 || cursor + length > data.Length) throw Error("Invalid DNS label length.");
             wireLength += length + 1;

@@ -20,6 +20,9 @@ public class QuestionField
 
     public byte[] GetBytes()
     {
-        return DnsMessage.CreateQuery(0, Domain, Type, Class).ToArray()[12..];
+        byte[] bytes = DnsMessage.CreateQuery(0, Domain, Type, Class).ToArray();
+        var result = new byte[bytes.Length - 12];
+        Buffer.BlockCopy(bytes, 12, result, 0, result.Length);
+        return result;
     }
 }
