@@ -34,6 +34,11 @@ public sealed class DnsHeader
     public bool IsTruncated { get; set; }
     public bool RecursionDesired { get; set; }
     public bool RecursionAvailable { get; set; }
+    /// <summary>AD bit (RFC 4035): data was authenticated by the validating resolver.</summary>
+    public bool AuthenticData { get; set; }
+    /// <summary>CD bit (RFC 4035): request that DNSSEC validation be disabled upstream.</summary>
+    public bool CheckingDisabled { get; set; }
+    /// <summary>The RFC 1035 Z bit. It MUST be zero on the wire.</summary>
     public byte Reserved { get; set; }
     public DnsResponseCode ResponseCode { get; set; }
     public ushort QuestionCount { get; internal set; }

@@ -86,6 +86,42 @@ public class MessageCodecTests
     }
 
     [TestMethod]
+    public void PreservesDnssecHeaderBitsAndZBitSeparately()
+    {
+        var message = new DnsMessage(new DnsHeader
+        {
+            Id = 42, IsResponse = true, AuthenticData = true, CheckingDisabled = true
+        });
+        message.Questions.Add(new DnsQuestion("example.com"));
+
+        DnsHeader header = DnsMessage.Parse(message.ToArray()).Header;
+
+        Assert.IsTrue(header.AuthenticData);
+        Assert.IsTrue(header.CheckingDisabled);
+        Assert.AreEqual(0, header.Reserved);
+    }
+
+    [TestMethod]
+    public void RejectsMultipleQuestionsForStandardQuery()
+    {
+        var message = new DnsMessage(new DnsHeader { Id = 1, OpCode = DnsOpCode.Query });
+        message.Questions.Add(new DnsQuestion("one.example"));
+        message.Questions.Add(new DnsQuestion("two.example"));
+        byte[] wire = message.ToArray();
+
+        Assert.ThrowsExactly<DnsProtocolException>(() => DnsMessage.Parse(wire));
+    }
+
+    [TestMethod]
+    public void EnforcesDecoderLimitsBeforeAllocatingSections()
+    {
+        byte[] wire = DnsMessage.CreateQuery(1, "example.com").ToArray();
+
+        Assert.ThrowsExactly<DnsProtocolException>(() => DnsMessageCodec.Read(wire, maxMessageSize: 12));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => DnsMessageCodec.Read(wire, maxRecordCount: 0));
+    }
+
+    [TestMethod]
     public void EscapedNamesRoundTripArbitraryLabelOctets()
     {
         const string name = @"a\.b.back\\slash.\000\255";

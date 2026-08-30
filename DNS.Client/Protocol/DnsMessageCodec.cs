@@ -24,7 +24,9 @@ public static class DnsMessageCodec
             | (message.Header.IsTruncated ? 0x0200 : 0)
             | (message.Header.RecursionDesired ? 0x0100 : 0)
             | (message.Header.RecursionAvailable ? 0x0080 : 0)
-            | ((message.Header.Reserved & 0x07) << 4)
+            | (message.Header.AuthenticData ? 0x0020 : 0)
+            | (message.Header.CheckingDisabled ? 0x0010 : 0)
+            | ((message.Header.Reserved & 0x01) << 6)
             | ((ushort)message.Header.ResponseCode & 0x0f));
         writer.UInt16(flags);
         writer.UInt16(qd); writer.UInt16(an); writer.UInt16(ns); writer.UInt16(ar);
@@ -41,8 +43,11 @@ public static class DnsMessageCodec
         return writer.ToArray();
     }
 
-    public static DnsMessage Read(ReadOnlySpan<byte> data)
+    public static DnsMessage Read(ReadOnlySpan<byte> data, int maxMessageSize = 65535, int maxRecordCount = 4096)
     {
+        if (maxMessageSize < 12) throw new ArgumentOutOfRangeException(nameof(maxMessageSize));
+        if (maxRecordCount < 1) throw new ArgumentOutOfRangeException(nameof(maxRecordCount));
+        if (data.Length > maxMessageSize) throw new DnsProtocolException("DNS message exceeds the configured maximum size.");
         if (data.Length < 12) throw new DnsProtocolException("A DNS message must contain a 12-byte header.");
         var reader = new DnsWireReader(data);
         ushort id = reader.UInt16();
@@ -56,13 +61,21 @@ public static class DnsMessageCodec
             IsTruncated = (flags & 0x0200) != 0,
             RecursionDesired = (flags & 0x0100) != 0,
             RecursionAvailable = (flags & 0x0080) != 0,
-            Reserved = (byte)((flags >> 4) & 0x07),
+            AuthenticData = (flags & 0x0020) != 0,
+            CheckingDisabled = (flags & 0x0010) != 0,
+            Reserved = (byte)((flags >> 6) & 0x01),
             ResponseCode = (DnsResponseCode)(flags & 0x0f),
             QuestionCount = reader.UInt16(),
             AnswerCount = reader.UInt16(),
             AuthorityCount = reader.UInt16(),
             AdditionalCount = reader.UInt16()
         };
+        // RFC 9619 updates RFC 1035: standard QUERY messages have at most one question.
+        if (header.OpCode == DnsOpCode.Query && header.QuestionCount > 1)
+            throw new DnsProtocolException("QDCOUNT greater than one is not valid for OPCODE=QUERY (RFC 9619).");
+        uint totalRecords = (uint)header.QuestionCount + header.AnswerCount + header.AuthorityCount + header.AdditionalCount;
+        if (totalRecords > (uint)maxRecordCount)
+            throw new DnsProtocolException("DNS message contains more records than the configured limit.");
         var message = new DnsMessage(header);
 
         for (int i = 0; i < header.QuestionCount; i++)
