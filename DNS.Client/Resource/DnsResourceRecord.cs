@@ -37,6 +37,48 @@ public sealed class ARecordData : DnsRecordData
     public IPAddress Address { get; }
 }
 
+public sealed class AaaaRecordData : DnsRecordData
+{
+    public AaaaRecordData(IPAddress address)
+    {
+        Address = address ?? throw new ArgumentNullException(nameof(address));
+        if (address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
+            throw new ArgumentException("AAAA records require an IPv6 address.", nameof(address));
+    }
+    public IPAddress Address { get; }
+}
+
+public sealed class SrvRecordData : DnsRecordData
+{
+    public SrvRecordData(ushort priority, ushort weight, ushort port, string target)
+    { Priority = priority; Weight = weight; Port = port; Target = target ?? throw new ArgumentNullException(nameof(target)); }
+    public ushort Priority { get; }
+    public ushort Weight { get; }
+    public ushort Port { get; }
+    public string Target { get; }
+}
+
+public sealed class NAPTRRecordData : DnsRecordData
+{
+    public NAPTRRecordData(ushort order, ushort preference, string flags, string services, string regexp, string replacement)
+    { Order = order; Preference = preference; Flags = flags ?? ""; Services = services ?? ""; Regexp = regexp ?? ""; Replacement = replacement ?? throw new ArgumentNullException(nameof(replacement)); }
+    public ushort Order { get; }
+    public ushort Preference { get; }
+    public string Flags { get; }
+    public string Services { get; }
+    public string Regexp { get; }
+    public string Replacement { get; }
+}
+
+public sealed class CaaRecordData : DnsRecordData
+{
+    public CaaRecordData(byte flags, string tag, string value)
+    { Flags = flags; Tag = tag ?? throw new ArgumentNullException(nameof(tag)); Value = value ?? throw new ArgumentNullException(nameof(value)); }
+    public byte Flags { get; }
+    public string Tag { get; }
+    public string Value { get; }
+}
+
 /// <summary>RDATA consisting of one domain name: CNAME, MB, MD, MF, MG, MR, NS or PTR.</summary>
 public sealed class NameRecordData : DnsRecordData
 {

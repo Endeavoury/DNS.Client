@@ -101,6 +101,9 @@ public static class DnsMessageCodec
             case QuestionType.A when @class == QuestionClass.IN && data is ARecordData a:
                 writer.Bytes(a.Address.GetAddressBytes());
                 return;
+            case QuestionType.AAAA when @class == QuestionClass.IN && data is AaaaRecordData aaaa:
+                writer.Bytes(aaaa.Address.GetAddressBytes());
+                return;
             case QuestionType.CNAME or QuestionType.MB or QuestionType.MD or QuestionType.MF
                 or QuestionType.MG or QuestionType.MR or QuestionType.NS or QuestionType.PTR
                 when data is NameRecordData name:
@@ -117,6 +120,16 @@ public static class DnsMessageCodec
             case QuestionType.MX when data is MxRecordData mx:
                 writer.UInt16(mx.Preference);
                 writer.Name(mx.Exchange);
+                return;
+            case QuestionType.SRV when data is SrvRecordData srv:
+                writer.UInt16(srv.Priority); writer.UInt16(srv.Weight); writer.UInt16(srv.Port); writer.Name(srv.Target);
+                return;
+            case QuestionType.NAPTR when data is NAPTRRecordData naptr:
+                writer.UInt16(naptr.Order); writer.UInt16(naptr.Preference);
+                writer.CharacterString(naptr.Flags); writer.CharacterString(naptr.Services); writer.CharacterString(naptr.Regexp); writer.Name(naptr.Replacement);
+                return;
+            case QuestionType.CAA when data is CaaRecordData caa:
+                writer.Byte(caa.Flags); writer.CharacterString(caa.Tag); writer.Bytes(System.Text.Encoding.UTF8.GetBytes(caa.Value));
                 return;
             case QuestionType.SOA when data is SoaRecordData soa:
                 writer.Name(soa.PrimaryNameServer);
@@ -174,6 +187,9 @@ public static class DnsMessageCodec
             case QuestionType.A when @class == QuestionClass.IN:
                 RequireLength(reader, end, 4, type);
                 return new ARecordData(new IPAddress(reader.Bytes(4)));
+            case QuestionType.AAAA when @class == QuestionClass.IN:
+                RequireLength(reader, end, 16, type);
+                return new AaaaRecordData(new IPAddress(reader.Bytes(16)));
             case QuestionType.CNAME:
             case QuestionType.MB:
             case QuestionType.MD:
@@ -189,6 +205,16 @@ public static class DnsMessageCodec
                 return new MInfoRecordData(reader.Name(), reader.Name());
             case QuestionType.MX:
                 return new MxRecordData(reader.UInt16(), reader.Name());
+            case QuestionType.SRV:
+                if (end - reader.Position < 7) throw new DnsProtocolException("SRV RDATA is too short.");
+                return new SrvRecordData(reader.UInt16(), reader.UInt16(), reader.UInt16(), reader.Name());
+            case QuestionType.NAPTR:
+                return new NAPTRRecordData(reader.UInt16(), reader.UInt16(), reader.CharacterString(end), reader.CharacterString(end), reader.CharacterString(end), reader.Name());
+            case QuestionType.CAA:
+                if (end - reader.Position < 2) throw new DnsProtocolException("CAA RDATA is too short.");
+                byte caaFlags = reader.Byte();
+                string caaTag = reader.CharacterString(end);
+                return new CaaRecordData(caaFlags, caaTag, DnsWireWriter.WireEncoding.GetString(reader.Bytes(end - reader.Position)));
             case QuestionType.SOA:
                 return new SoaRecordData(reader.Name(), reader.Name(), reader.UInt32(), reader.UInt32(),
                     reader.UInt32(), reader.UInt32(), reader.UInt32());

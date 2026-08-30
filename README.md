@@ -8,7 +8,8 @@ It supports:
 - standard, inverse, and status message opcodes;
 - all RFC 1035 TYPE, QTYPE, CLASS, QCLASS, and response-code values;
 - the A, CNAME, HINFO, MB, MD, MF, MG, MINFO, MR, MX, NULL, NS, PTR, SOA, TXT,
-  and WKS RDATA formats, with lossless raw data for unknown extension types;
+  WKS, AAAA, SRV, NAPTR, and CAA RDATA formats, with lossless raw data for unknown
+  extension types;
 - all four DNS sections and correct header counts;
 - reading and writing compressed names, including pointer safety and RFC name limits;
 - UDP retries, multiple resolvers, response matching, the RFC 512-byte UDP limit,
@@ -16,6 +17,9 @@ It supports:
 - explicit TCP queries and multi-message AXFR zone transfers;
 - IPv4 reverse lookup through the RFC 1035 IN-ADDR.ARPA namespace;
 - synchronous and asynchronous calls, cancellation, and configurable timeouts.
+- a high-level `LookupClient` API with configurable name servers, TTL-aware caching,
+  reverse lookups, AXFR, and typed record collection helpers (`ARecords()`,
+  `AaaaRecords()`, `MxRecords()`, `SrvRecords()`, and `TxtRecords()`).
 
 The package is a DNS client, not an authoritative name server or a zone-file database.
 RFC 1035's server architecture and master-file storage sections are therefore outside
