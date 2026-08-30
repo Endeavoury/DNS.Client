@@ -110,6 +110,21 @@ The Java 22+ package uses the finalized Foreign Function & Memory API and bundle
 same native core for supported release platforms. See the
 [Java and Maven guide](bindings/java/README.md).
 
+## Python
+
+```python
+import ratatoskr
+
+result = ratatoskr.dns.query("example.com", record_type="A")
+for record in result.answers:
+    print(record.text)
+```
+
+The `ratatoskr-sdk` PyPI distribution is a dependency-free `ctypes` binding with
+immutable results, typed errors, synchronous and `asyncio` APIs, and bundled native
+libraries for supported release platforms. See the
+[Python and PyPI guide](bindings/python/README.md).
+
 ## Layout
 
 ```text

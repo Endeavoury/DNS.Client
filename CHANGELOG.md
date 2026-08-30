@@ -10,4 +10,7 @@
 - Added idiomatic .NET native binding and a `DNS.Client` compatibility adapter.
 - Added a Java 22+ FFM binding and Maven Central-ready package with bundled-native
   loading, immutable DNS results, async adaptation, and native integration tests.
+- Added the `ratatoskr-sdk` PyPI package with a dependency-free ctypes binding,
+  immutable models, typed errors, asyncio adaptation, six native wheels, and
+  deterministic native integration tests.
 - Added native tests, fuzz targets, sanitizer option, packaging groundwork, and docs.

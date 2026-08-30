@@ -100,6 +100,26 @@ jobs:
           mvn --batch-mode --file bindings/java/pom.xml verify
           -Dratatoskr.library.path=${{ github.workspace }}/build/libratatoskr.so
 
+  python-binding:
+    name: Python ctypes binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Build native core
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DRATOS_BUILD_CLI=OFF -DRATOS_BUILD_TESTS=OFF
+          cmake --build build --parallel
+      - name: Verify Python to native DNS path
+        env:
+          RATATOSKR_LIBRARY: ${{ github.workspace }}/build/libratatoskr.so
+          PYTHONPATH: ${{ github.workspace }}/bindings/python/src
+        run: python -m unittest discover -s bindings/python/tests -v
+      - name: Compile Python sources
+        run: python -m compileall -q bindings/python/src bindings/python/tests bindings/python/examples
+
   package-smoke:
     name: NuGet package layout smoke test
     runs-on: ubuntu-latest

@@ -9,6 +9,11 @@ on:
         description: Semantic version without v
         required: true
         default: 0.1.0
+      publish_pypi:
+        description: Publish the validated Python distributions through PyPI Trusted Publishing
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   native:
@@ -18,8 +23,8 @@ jobs:
         include:
           - { os: ubuntu-latest, rid: linux-x64, args: "", test: true }
           - { os: ubuntu-latest, rid: linux-arm64, args: "-DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc", test: false }
-          - { os: macos-latest, rid: osx-x64, args: "-DCMAKE_OSX_ARCHITECTURES=x86_64", test: false }
-          - { os: macos-latest, rid: osx-arm64, args: "-DCMAKE_OSX_ARCHITECTURES=arm64", test: false }
+          - { os: macos-latest, rid: osx-x64, args: "-DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0", test: false }
+          - { os: macos-latest, rid: osx-arm64, args: "-DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0", test: false }
           - { os: windows-latest, rid: win-x64, args: "-A x64", test: true }
           - { os: windows-latest, rid: win-arm64, args: "-A ARM64", test: false }
     runs-on: ${{ matrix.os }}
@@ -134,9 +139,67 @@ jobs:
             bindings/java/target/ratatoskr-*.jar
             bindings/java/target/ratatoskr-*.pom
 
+  python:
+    runs-on: ubuntu-latest
+    needs: native
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: native-*
+          path: bindings/python/native-stage
+          merge-multiple: true
+      - name: Select version
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then version="${GITHUB_REF_NAME#v}"; else version="$INPUT_VERSION"; fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+      - name: Install Python packaging tools
+        run: python -m pip install --disable-pip-version-check build setuptools
+      - name: Build six native wheels and source distribution
+        run: >-
+          python bindings/python/tools/build_release_wheels.py
+          --native-stage bindings/python/native-stage
+          --output bindings/python/dist
+          --version ${{ steps.version.outputs.value }}
+      - name: Verify installed Linux wheel uses its bundled native core
+        shell: bash
+        run: |
+          python -m venv bindings/python/wheel-smoke
+          bindings/python/wheel-smoke/bin/python -m pip install --disable-pip-version-check bindings/python/dist/*-py3-none-linux_x86_64.whl
+          RATATOSKR_TEST_NATIVE=1 bindings/python/wheel-smoke/bin/python -m unittest discover -s bindings/python/tests -v
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ratatoskr-pypi-${{ steps.version.outputs.value }}
+          path: bindings/python/dist/*
+
+  pypi:
+    runs-on: ubuntu-latest
+    needs: python
+    if: inputs.publish_pypi == true
+    environment:
+      name: pypi
+      url: https://pypi.org/project/ratatoskr-sdk/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: ratatoskr-pypi-*
+          path: dist
+          merge-multiple: true
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
   github-release:
     runs-on: ubuntu-latest
-    needs: [nuget, maven]
+    needs: [nuget, maven, python]
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write

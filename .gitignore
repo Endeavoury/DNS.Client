@@ -215,6 +215,16 @@ bindings/dotnet/runtimes/*/native/*
 bindings/java/src/main/resources/META-INF/native/*/*.so
 bindings/java/src/main/resources/META-INF/native/*/*.dylib
 bindings/java/src/main/resources/META-INF/native/*/*.dll
+bindings/python/build/
+bindings/python/dist/
+bindings/python/native-stage/
+bindings/python/wheel-smoke/
+bindings/python/src/*.egg-info/
+bindings/python/src/ratatoskr/_native/*/*.so
+bindings/python/src/ratatoskr/_native/*/*.dylib
+bindings/python/src/ratatoskr/_native/*/*.dll
+**/__pycache__/
+*.py[cod]
 
 # VS 2015+
 *.vc.vc.opendb

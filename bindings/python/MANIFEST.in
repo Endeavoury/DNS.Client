@@ -1,0 +1,4 @@
+include LICENSE
+include README.md
+recursive-include src/ratatoskr *.py py.typed README.md
+recursive-include tests *.py

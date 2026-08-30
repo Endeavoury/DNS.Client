@@ -37,6 +37,12 @@ Memory API. It creates a context per query, copies native results into immutable
 values, and destroys native ownership before returning. Published Maven artifacts may
 bundle platform libraries, but those files are builds of the same canonical C source.
 
+The Python binding targets Python 3.11 or newer and uses only standard-library
+`ctypes` and `asyncio`. Native handles never enter the public API: each query creates a
+context, copies a result into frozen Python values, and releases all native ownership.
+Its platform wheels each contain one matching build of the canonical C library; the
+source distribution uses an explicitly selected or system-installed library.
+
 ## Result and ABI design
 
 Contexts and DNS results are opaque. Records are borrowed opaque views owned by their

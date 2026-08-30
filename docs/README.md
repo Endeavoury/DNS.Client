@@ -12,6 +12,8 @@
 
 - [Build and contribution guide](contributing.md)
 - [.NET compatibility migration](migration-dotnet.md)
+- [Java and Maven binding](../bindings/java/README.md)
+- [Python and PyPI binding](../bindings/python/README.md)
 - [Publishing](publishing.md)
 - [CLI manual page](man/ratos.1)
 
