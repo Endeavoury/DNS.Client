@@ -17,6 +17,11 @@
 /build-*/
 /out/
 /artifacts/
+**/.dart_tool/
+**/.build/
+**/node_modules/
+**/target/
+*.gem
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake

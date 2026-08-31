@@ -1,0 +1,169 @@
+name: Ratatoskr bindings CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bindings-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DRATOS_BUILD_CLI=OFF -DRATOS_BUILD_TESTS=OFF
+      - run: cmake --build build --parallel
+      - run: cmake --install build --prefix native
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binding-native
+          path: native/
+          if-no-files-found: error
+
+  rust:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: rustfmt }
+      - run: cargo fmt --manifest-path bindings/rust/Cargo.toml --check
+      - run: cargo test --manifest-path bindings/rust/Cargo.toml --locked
+        env:
+          RATATOSKR_LIB_DIR: ${{ github.workspace }}/native/lib
+          LD_LIBRARY_PATH: ${{ github.workspace }}/native/lib
+
+  go:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: actions/setup-go@v6
+        with: { go-version: '1.22', cache-dependency-path: bindings/go/go.mod }
+      - run: test -z "$(gofmt -l .)" && go test ./...
+        working-directory: bindings/go
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/native/lib/pkgconfig
+          LD_LIBRARY_PATH: ${{ github.workspace }}/native/lib
+
+  npm:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22', cache: npm, cache-dependency-path: bindings/node/package-lock.json }
+      - run: npm ci
+        working-directory: bindings/node
+      - run: npm test && npm run pack:check
+        working-directory: bindings/node
+        env: { RATATOSKR_LIBRARY: '${{ github.workspace }}/native/lib/libratatoskr.so' }
+
+  php:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', extensions: ffi, tools: composer }
+      - run: composer validate --strict --no-check-publish && find src -name '*.php' -print0 | xargs -0 -n1 php -l
+        working-directory: bindings/php
+      - run: >-
+          php -d ffi.enable=1 -r 'require "src/DnsRecordType.php";
+          require "src/RatatoskrException.php"; require "src/Dns.php";
+          exit(Ratatoskr\Dns::abiVersion() === 1 ? 0 : 1);'
+        working-directory: bindings/php
+        env: { RATATOSKR_LIBRARY: '${{ github.workspace }}/native/lib/libratatoskr.so' }
+
+  ruby:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: ruby/setup-ruby@v1
+        with: { ruby-version: '3.3' }
+      - run: gem build ratatoskr.gemspec && ruby -Ilib test/test_ratatoskr.rb
+        working-directory: bindings/ruby
+        env: { RATATOSKR_LIBRARY: '${{ github.workspace }}/native/lib/libratatoskr.so' }
+
+  dart:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get && dart format --output=none --set-exit-if-changed lib test && dart analyze && dart test
+        working-directory: bindings/dart
+        env: { RATATOSKR_LIBRARY: '${{ github.workspace }}/native/lib/libratatoskr.so' }
+
+  swift:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: swift-actions/setup-swift@v3
+        with: { swift-version: '6.0' }
+      - run: swift test
+        working-directory: bindings/swift
+        env:
+          PKG_CONFIG_PATH: ${{ github.workspace }}/native/lib/pkgconfig
+          LD_LIBRARY_PATH: ${{ github.workspace }}/native/lib
+
+  lua:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - run: sudo apt-get update && sudo apt-get install -y lua5.4 liblua5.4-dev luarocks
+      - run: luarocks lint ratatoskr-0.1.0-1.rockspec
+        working-directory: bindings/lua
+      - name: Build and load Lua module
+        run: |
+          cc -shared -fPIC bindings/lua/src/ratatoskr_lua.c -o ratatoskr.so -Inative/include $(pkg-config --cflags lua5.4) -Lnative/lib -lratatoskr
+          LUA_CPATH="$PWD/?.so" lua5.4 -e 'assert(require("ratatoskr").abi_version() == 1)'
+        env: { LD_LIBRARY_PATH: '${{ github.workspace }}/native/lib' }
+
+  conan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.11' }
+      - run: python -m pip install --disable-pip-version-check 'conan>=2.10,<3'
+      - run: conan profile detect --force
+      - run: conan create . --build=missing -tf bindings/cpp/test_package
+
+  kotlin:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with: { name: binding-native, path: native }
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: '22', cache: maven }
+      - run: mvn --batch-mode --file bindings/java/pom.xml install -Drevision=0.1.0 -Dratatoskr.library.path=${{ github.workspace }}/native/lib/libratatoskr.so
+      - run: mvn --batch-mode --file bindings/kotlin/pom.xml verify -Drevision=0.1.0 -Dratatoskr.library.path=${{ github.workspace }}/native/lib/libratatoskr.so

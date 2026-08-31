@@ -52,10 +52,18 @@ def main() -> int:
         "CMake": cmake_version,
         "C header": ".".join(native_parts),
         "Java": require_match("bindings/java/pom.xml", r"<revision>([^<]+)</revision>"),
+        "Kotlin": require_match("bindings/kotlin/pom.xml", r"<revision>([^<]+)</revision>"),
         "Python": require_match(
             "bindings/python/src/ratatoskr/_version.py",
             r'^__version__ = "([^"]+)"$',
         ),
+        "Rust": require_match("bindings/rust/Cargo.toml", r'^version = "([^"]+)"$'),
+        "npm": require_match("bindings/node/package.json", r'^\s*"version": "([^"]+)"'),
+        "Packagist": require_match("bindings/php/composer.json", r'^\s*"version": "([^"]+)"'),
+        "RubyGems": require_match("bindings/ruby/ratatoskr.gemspec", r'spec\.version = "([^"]+)"'),
+        "pub.dev": require_match("bindings/dart/pubspec.yaml", r'^version: ([^\s]+)$'),
+        "LuaRocks": require_match("bindings/lua/ratatoskr-0.1.0-1.rockspec", r'^version = "([0-9.]+)-[0-9]+"$'),
+        "Conan": require_match("conanfile.py", r'^\s*version = "([^"]+)"$'),
         "Arch": require_match("packaging/arch/PKGBUILD", r"^pkgver=([^\s]+)$"),
         "man page": require_match("docs/man/ratos.1", r'"Ratatoskr ([^"]+)"'),
     }

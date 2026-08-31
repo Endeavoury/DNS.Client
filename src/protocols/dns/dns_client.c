@@ -51,7 +51,10 @@ static uint16_t query_id(void) {
     if (rand_s(&random_value) == 0) value = (uint16_t)random_value;
 #else
     FILE *random_file = fopen("/dev/urandom", "rb");
-    if (random_file != NULL) { (void)fread(&value, sizeof(value), 1u, random_file); fclose(random_file); }
+    if (random_file != NULL) {
+        if (fread(&value, sizeof(value), 1u, random_file) != 1u) value = 0u;
+        fclose(random_file);
+    }
 #endif
     if (value == 0u) value = (uint16_t)((unsigned)time(NULL) ^ (unsigned)(uintptr_t)&value);
     return value;

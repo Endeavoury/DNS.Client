@@ -1,0 +1,5 @@
+module CRatatoskr [system] {
+    header "shim.h"
+    link "ratatoskr"
+    export *
+}

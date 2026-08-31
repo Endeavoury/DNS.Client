@@ -6,21 +6,23 @@ an independent DNS implementation or parse CLI output.
 
 | Target | Distribution | Repository location | Status |
 |---|---|---|---|
-| C | Conan | `bindings/c/` | queued; canonical headers already installable |
-| C++ | Conan | `bindings/cpp/` | queued |
+| C | Conan | `bindings/c/` | implemented canonical package |
+| C++ | Conan | `bindings/cpp/` | implemented value/RAII wrapper |
 | C# / .NET | NuGet | `bindings/dotnet/` | implemented foundation |
-| JavaScript / TypeScript | npm | `bindings/node/` | design placeholder |
+| JavaScript / TypeScript | npm | `bindings/node/` | implemented Koffi binding and declarations |
 | Python | PyPI (`ratatoskr-sdk`) | `bindings/python/` | implemented ctypes binding |
 | Java | Maven Central | `bindings/java/` | implemented Java 22+ FFM binding |
-| Kotlin | Maven Central | `bindings/kotlin/` | queued; share JVM native layer with Java |
-| Rust | crates.io | `bindings/rust/` | design placeholder |
-| PHP | Packagist | `bindings/php/` | queued |
-| Go | Go Modules / Git | `bindings/go/` | design placeholder |
-| Ruby | RubyGems | `bindings/ruby/` | queued |
-| Dart | pub.dev | `bindings/dart/` | queued |
-| Swift | Swift Package Manager / Git | `bindings/swift/` | design placeholder |
-| Lua | LuaRocks | `bindings/lua/` | queued |
+| Kotlin | Maven Central | `bindings/kotlin/` | implemented facade over Java FFM binding |
+| Rust | crates.io (`ratatoskr-sdk`) | `bindings/rust/` | implemented safe FFI binding |
+| PHP | Packagist | `bindings/php/` | implemented PHP FFI binding |
+| Go | Go Modules / Git | `bindings/go/` | implemented cgo binding |
+| Ruby | RubyGems (`ratatoskr-sdk`) | `bindings/ruby/` | implemented Fiddle binding |
+| Dart | pub.dev | `bindings/dart/` | implemented Dart FFI binding |
+| Swift | Swift Package Manager / Git | `bindings/swift/` | implemented Swift/C module binding |
+| Lua | LuaRocks | `bindings/lua/` | implemented Lua C module |
 
-Package publishing is deliberately staged after ABI and platform artifact validation.
-Empty public packages are not published. Each package must prove an end-to-end call
-from its public API through `libratatoskr` before release.
+Every package calls `libratatoskr` directly and is gated by the bindings workflow.
+Repository- and tag-based ecosystems (Go and Swift) consume release tags; Packagist
+tracks the Composer metadata in those tags. Registry credentials and trusted
+publishing identities remain release-environment configuration, never repository
+secrets embedded in package sources.

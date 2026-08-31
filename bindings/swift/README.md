@@ -1,4 +1,8 @@
-# Swift binding plan
+# Ratatoskr for Swift
 
-Swift Package Manager imports the public C module and layers Swift value types over
-opaque handles. Apple-platform binary targets bundle the core.
+The Swift package imports the installed C headers through `CRatatoskr` and adds
+Swift value types with deterministic native ownership.
+
+```swift
+let result = try Dns.query("example.com", type: .a)
+```
