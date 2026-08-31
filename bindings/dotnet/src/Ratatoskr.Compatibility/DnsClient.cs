@@ -53,7 +53,7 @@ public sealed class DnsClient
         if (address.AddressFamily == AddressFamily.InterNetwork)
             return $"{octets[3]}.{octets[2]}.{octets[1]}.{octets[0]}.in-addr.arpa";
         if (address.AddressFamily == AddressFamily.InterNetworkV6)
-            return string.Join(".", octets.Reverse().SelectMany(value => new[] {
+            return string.Join(".", octets.AsEnumerable().Reverse().SelectMany(value => new[] {
                 (value & 0x0f).ToString("x", System.Globalization.CultureInfo.InvariantCulture),
                 (value >> 4).ToString("x", System.Globalization.CultureInfo.InvariantCulture)
             })) + ".ip6.arpa";

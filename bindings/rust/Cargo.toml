@@ -1,0 +1,16 @@
+[package]
+name = "ratatoskr-sdk"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Safe Rust bindings for the Ratatoskr native networking core"
+license = "MIT"
+repository = "https://github.com/Endeavoury/Ratatoskr"
+documentation = "https://docs.rs/ratatoskr-sdk"
+keywords = ["dns", "networking", "ffi", "ratatoskr"]
+categories = ["network-programming", "api-bindings"]
+links = "ratatoskr"
+
+[lib]
+name = "ratatoskr"
+path = "src/lib.rs"

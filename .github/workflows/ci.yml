@@ -6,6 +6,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   native-and-dotnet:
     name: ${{ matrix.os }} native + .NET
@@ -119,6 +126,16 @@ jobs:
         run: python -m unittest discover -s bindings/python/tests -v
       - name: Compile Python sources
         run: python -m compileall -q bindings/python/src bindings/python/tests bindings/python/examples
+
+  release-metadata:
+    name: Release metadata guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python tools/validate_release.py
 
   package-smoke:
     name: NuGet package layout smoke test

@@ -1,4 +1,8 @@
-# Go binding plan
+# Ratatoskr for Go
 
-The Go module wraps the installed or bundled C ABI through cgo, copies result values,
-and destroys native ownership before returning.
+This module uses cgo and the installed `ratatoskr.pc` file to call the canonical
+C core. Install `libratatoskr` and ensure `PKG_CONFIG_PATH` can find it.
+
+```go
+result, err := ratatoskr.Query("example.com", ratatoskr.A, ratatoskr.QueryOptions{})
+```

@@ -1,0 +1,17 @@
+{
+  "name": "@ratatoskr/core",
+  "version": "0.1.0",
+  "description": "JavaScript and TypeScript bindings for the Ratatoskr native networking core",
+  "type": "module",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "exports": { ".": { "types": "./src/index.d.ts", "import": "./src/index.js" } },
+  "files": ["src", "native", "README.md", "LICENSE"],
+  "scripts": { "test": "node --test", "pack:check": "npm pack --dry-run" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "koffi": "^2.15.0" },
+  "keywords": ["dns", "networking", "ffi", "ratatoskr"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Endeavoury/Ratatoskr.git", "directory": "bindings/node" },
+  "publishConfig": { "access": "public" }
+}

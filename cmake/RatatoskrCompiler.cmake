@@ -40,5 +40,11 @@ function(ratos_configure_executable target)
         target_compile_options(${target} PRIVATE /W4 /permissive-)
     else()
         target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
+        if(RATOS_ENABLE_SANITIZERS)
+            target_compile_options(${target} PRIVATE
+                -fsanitize=address,undefined
+                -fno-omit-frame-pointer)
+            target_link_options(${target} PRIVATE -fsanitize=address,undefined)
+        endif()
     endif()
 endfunction()
