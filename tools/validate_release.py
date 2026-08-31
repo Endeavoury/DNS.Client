@@ -59,7 +59,6 @@ def main() -> int:
         ),
         "Rust": require_match("bindings/rust/Cargo.toml", r'^version = "([^"]+)"$'),
         "npm": require_match("bindings/node/package.json", r'^\s*"version": "([^"]+)"'),
-        "Packagist": require_match("bindings/php/composer.json", r'^\s*"version": "([^"]+)"'),
         "RubyGems": require_match("bindings/ruby/ratatoskr.gemspec", r'spec\.version = "([^"]+)"'),
         "pub.dev": require_match("bindings/dart/pubspec.yaml", r'^version: ([^\s]+)$'),
         "LuaRocks": require_match("bindings/lua/ratatoskr-0.1.0-1.rockspec", r'^version = "([0-9.]+)-[0-9]+"$'),

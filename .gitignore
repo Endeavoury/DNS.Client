@@ -15,6 +15,7 @@
 # Build results
 /build/
 /build-*/
+**/build/
 /out/
 /artifacts/
 **/.dart_tool/

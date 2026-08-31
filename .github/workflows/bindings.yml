@@ -122,8 +122,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/download-artifact@v5
         with: { name: binding-native, path: native }
-      - uses: swift-actions/setup-swift@v3
-        with: { swift-version: '6.0' }
+      - name: Verify runner Swift toolchain
+        run: swift --version
       - run: swift test
         working-directory: bindings/swift
         env:
@@ -142,7 +142,8 @@ jobs:
         working-directory: bindings/lua
       - name: Build and load Lua module
         run: |
-          cc -shared -fPIC bindings/lua/src/ratatoskr_lua.c -o ratatoskr.so -Inative/include $(pkg-config --cflags lua5.4) -Lnative/lib -lratatoskr
+          read -r -a LUA_CFLAGS <<< "$(pkg-config --cflags lua5.4)"
+          cc -shared -fPIC bindings/lua/src/ratatoskr_lua.c -o ratatoskr.so -Inative/include "${LUA_CFLAGS[@]}" -Lnative/lib -lratatoskr
           LUA_CPATH="$PWD/?.so" lua5.4 -e 'assert(require("ratatoskr").abi_version() == 1)'
         env: { LD_LIBRARY_PATH: '${{ github.workspace }}/native/lib' }
 
